@@ -1,0 +1,12 @@
+# Core dependencies
+python-dotenv>=1.0.0
+
+# Testing
+pytest>=7.0.0
+pytest-asyncio>=0.21.0
+pytest-mock>=3.12.0
+
+# Phase dependencies (installed separately in their respective phases)
+# Phase 1: datasets, pandas, sqlalchemy
+# Phase 3: (no external deps)
+# Phase 4: groq

@@ -1,0 +1,27 @@
+# End-to-End Testing Requirements
+# Install with: pip install -r requirements.txt
+
+# Testing framework
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+pytest-cov>=4.1.0
+pytest-xdist>=3.3.0  # For parallel test execution
+
+# HTTP client for API testing
+httpx>=0.25.0
+
+# Additional testing utilities
+pytest-timeout>=2.1.0
+pytest-mock>=3.11.0
+
+# For test reporting
+pytest-html>=3.2.0
+pytest-json-report>=1.5.0
+
+# Code quality
+flake8>=6.0.0
+black>=23.0.0
+mypy>=1.5.0
+
+# Optional: For load testing
+locust>=2.15.0  # Uncomment if you want to add load testing
