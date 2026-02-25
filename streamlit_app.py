@@ -85,16 +85,25 @@ st.markdown("""
 @st.cache_resource
 def load_engine():
     """Load recommendation engine once"""
-    db_path = "restaurant-recommendation/phase-1-data-pipeline/data/restaurant.db"
-    return RecommendationEngine(db_path=db_path)
+    try:
+        return RecommendationEngine()
+    except Exception as e:
+        st.error(f"Error loading recommendation engine: {str(e)}")
+        return None
 
 @st.cache_data
 def get_available_options():
     """Get available cuisines and locations"""
     engine = load_engine()
-    cuisines = engine.get_available_cuisines()
-    locations = engine.get_available_locations()
-    return cuisines, locations
+    if engine is None:
+        return [], []
+    try:
+        cuisines = engine.get_available_cuisines()
+        locations = engine.get_available_locations()
+        return cuisines, locations
+    except Exception as e:
+        st.error(f"Error loading options: {str(e)}")
+        return [], []
 
 def main():
     # Header
@@ -106,31 +115,34 @@ def main():
         st.header("📊 Database Info")
         engine = load_engine()
         
-        try:
-            stats = engine.get_database_stats()
-            col1, col2 = st.columns(2)
-            with col1:
-                st.metric("Total Restaurants", stats.get("total_restaurants", 0))
-                st.metric("Cuisines", stats.get("total_cuisines", 0))
-            with col2:
-                st.metric("Locations", stats.get("total_locations", 0))
-                st.metric("Avg Rating", f"{stats.get('avg_rating', 0):.2f}")
-            
-            st.divider()
-            st.subheader("ℹ️ About")
-            st.info("""
+        if engine is None:
+            st.error("Could not load recommendation engine. Please check your configuration.")
+        else:
+            try:
+                stats = engine.get_database_stats()
+                col1, col2 = st.columns(2)
+                with col1:
+                    st.metric("Total Restaurants", stats.get("total_restaurants", 0))
+                    st.metric("Cuisines", stats.get("total_cuisines", 0))
+                with col2:
+                    st.metric("Locations", stats.get("total_locations", 0))
+                    st.metric("Avg Rating", f"{stats.get('avg_rating', 0):.2f}")
+                
+                st.divider()
+                st.subheader("ℹ️ About")
+                st.info("""
             This recommendation engine uses:
             - **Database**: SQLite with 9,216+ restaurants
             - **AI**: LLM-powered explanations
             - **Filtering**: Smart preference matching
             """)
-            
-            # Health check
-            st.subheader("🔍 Status")
-            st.success("✅ Database Connected")
-            
-        except Exception as e:
-            st.error(f"Error loading stats: {str(e)}")
+                
+                # Health check
+                st.subheader("🔍 Status")
+                st.success("✅ Database Connected")
+                
+            except Exception as e:
+                st.error(f"Error loading stats: {str(e)}")
     
     # Main content
     st.subheader("🔍 Find Restaurants")
@@ -214,6 +226,10 @@ def main():
                 
                 # Get recommendations
                 engine = load_engine()
+                if engine is None:
+                    st.error("Could not load recommendation engine. Please check your configuration.")
+                    return
+                
                 recommendations = engine.get_recommendations(validated_prefs)
                 
                 if not recommendations:
