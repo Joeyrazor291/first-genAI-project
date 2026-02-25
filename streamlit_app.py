@@ -43,7 +43,7 @@ except Exception as e:
     pass
 
 from recommendation_engine import RecommendationEngine
-from preference_processor import validate_preferences, get_filter_summary
+from preference_processor import PreferenceProcessor
 
 # Page configuration
 st.set_page_config(
@@ -202,8 +202,15 @@ def main():
                     "limit": limit
                 }
                 
-                # Validate preferences
-                validated_prefs = validate_preferences(preferences)
+                # Validate preferences using PreferenceProcessor
+                processor = PreferenceProcessor()
+                validation_result = processor.validate_and_normalize(preferences)
+                
+                if not validation_result.is_valid:
+                    st.error(f"Invalid preferences: {', '.join(validation_result.errors)}")
+                    return
+                
+                validated_prefs = validation_result.normalized_preferences
                 
                 # Get recommendations
                 engine = load_engine()
@@ -214,7 +221,7 @@ def main():
                     return
                 
                 # Display filter summary
-                filter_summary = get_filter_summary(validated_prefs)
+                filter_summary = processor.get_filter_summary(validated_prefs)
                 st.info(f"📋 Filters Applied: {filter_summary}")
                 
                 # Display results
