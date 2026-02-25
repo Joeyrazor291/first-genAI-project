@@ -26,7 +26,6 @@ except ImportError:
     pass
 
 # Load Streamlit secrets (for local development and Streamlit Cloud)
-# Secrets are stored in .streamlit/secrets.toml (local) or app settings (Streamlit Cloud)
 try:
     llm_provider = st.secrets.get("llm_provider", "groq")
     if llm_provider == "groq":
@@ -50,34 +49,246 @@ st.set_page_config(
     page_title="Restaurant Recommendation Engine",
     page_icon="🍽️",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="collapsed"
 )
 
-# Custom CSS
+# Custom CSS for better styling
 st.markdown("""
     <style>
-    .restaurant-card {
-        border: 1px solid #ddd;
-        border-radius: 8px;
-        padding: 16px;
-        margin: 8px 0;
-        background-color: #f9f9f9;
+    /* Main container */
+    .main {
+        padding: 0;
     }
-    .rating-badge {
-        display: inline-block;
-        background-color: #ffc107;
+    
+    /* Header styling */
+    .header-container {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 40px 20px;
+        border-radius: 0;
+        color: white;
+        text-align: center;
+        margin-bottom: 30px;
+    }
+    
+    .header-title {
+        font-size: 2.5em;
+        font-weight: bold;
+        margin: 0;
+        color: white;
+    }
+    
+    .header-subtitle {
+        font-size: 1.1em;
+        color: rgba(255,255,255,0.9);
+        margin-top: 10px;
+    }
+    
+    /* Form container */
+    .form-container {
+        background: white;
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        margin-bottom: 30px;
+    }
+    
+    /* Section title */
+    .section-title {
+        font-size: 1.3em;
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    /* Cuisine grid */
+    .cuisine-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+    
+    .cuisine-item {
+        background: white;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 15px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .cuisine-item:hover {
+        border-color: #667eea;
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+    }
+    
+    .cuisine-item.selected {
+        background: #667eea;
+        color: white;
+        border-color: #667eea;
+    }
+    
+    .cuisine-icon {
+        font-size: 2em;
+        margin-bottom: 8px;
+    }
+    
+    .cuisine-name {
+        font-size: 0.9em;
+        font-weight: 500;
+    }
+    
+    /* Restaurant card */
+    .restaurant-card {
+        background: white;
+        border: 1px solid #e0e0e0;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 15px;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    
+    .restaurant-card:hover {
+        box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+        transform: translateY(-2px);
+    }
+    
+    .restaurant-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: start;
+        margin-bottom: 12px;
+    }
+    
+    .restaurant-name {
+        font-size: 1.2em;
+        font-weight: bold;
+        color: #333;
+    }
+    
+    .restaurant-rating {
+        background: #ffc107;
         color: black;
-        padding: 4px 8px;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-weight: bold;
+        font-size: 0.9em;
+    }
+    
+    .restaurant-details {
+        display: flex;
+        gap: 20px;
+        margin-bottom: 12px;
+        font-size: 0.95em;
+        color: #666;
+    }
+    
+    .restaurant-detail-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    
+    .restaurant-description {
+        color: #666;
+        font-size: 0.95em;
+        margin-bottom: 12px;
+        line-height: 1.5;
+    }
+    
+    .explanation-box {
+        background: #f0f4ff;
+        border-left: 4px solid #667eea;
+        padding: 12px;
         border-radius: 4px;
+        font-size: 0.9em;
+        color: #333;
+        line-height: 1.5;
+    }
+    
+    /* Button styling */
+    .stButton > button {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 8px;
+        font-weight: bold;
+        font-size: 1em;
+        cursor: pointer;
+        width: 100%;
+        transition: all 0.3s ease;
+    }
+    
+    .stButton > button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+    
+    /* Slider styling */
+    .stSlider {
+        margin-bottom: 20px;
+    }
+    
+    /* Selectbox styling */
+    .stSelectbox, .stMultiSelect {
+        margin-bottom: 15px;
+    }
+    
+    /* Results section */
+    .results-header {
+        font-size: 1.5em;
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #667eea;
+    }
+    
+    /* Filter summary */
+    .filter-summary {
+        background: #e8f0fe;
+        border-left: 4px solid #667eea;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        color: #333;
+    }
+    
+    /* No results message */
+    .no-results {
+        text-align: center;
+        padding: 40px;
+        color: #999;
+    }
+    
+    /* Sidebar */
+    .sidebar-content {
+        padding: 20px;
+    }
+    
+    .stat-box {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        text-align: center;
+    }
+    
+    .stat-number {
+        font-size: 1.8em;
         font-weight: bold;
     }
-    .price-badge {
-        display: inline-block;
-        background-color: #28a745;
-        color: white;
-        padding: 4px 8px;
-        border-radius: 4px;
-        margin-left: 8px;
+    
+    .stat-label {
+        font-size: 0.9em;
+        opacity: 0.9;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -107,8 +318,12 @@ def get_available_options():
 
 def main():
     # Header
-    st.title("🍽️ Restaurant Recommendation Engine")
-    st.markdown("Find your perfect restaurant based on your preferences")
+    st.markdown("""
+        <div class="header-container">
+            <h1 class="header-title">🍽️ Restaurant Recommendation Engine</h1>
+            <p class="header-subtitle">Find your perfect restaurant based on your preferences</p>
+        </div>
+    """, unsafe_allow_html=True)
     
     # Sidebar - Statistics and Info
     with st.sidebar:
@@ -120,22 +335,45 @@ def main():
         else:
             try:
                 stats = engine.get_database_stats()
+                
+                # Display stats in boxes
                 col1, col2 = st.columns(2)
                 with col1:
-                    st.metric("Total Restaurants", stats.get("total_restaurants", 0))
-                    st.metric("Cuisines", stats.get("total_cuisines", 0))
+                    st.markdown(f"""
+                        <div class="stat-box">
+                            <div class="stat-number">{stats.get('total_restaurants', 0):,}</div>
+                            <div class="stat-label">Restaurants</div>
+                        </div>
+                    """, unsafe_allow_html=True)
+                    st.markdown(f"""
+                        <div class="stat-box">
+                            <div class="stat-number">{stats.get('total_cuisines', 0)}</div>
+                            <div class="stat-label">Cuisines</div>
+                        </div>
+                    """, unsafe_allow_html=True)
+                
                 with col2:
-                    st.metric("Locations", stats.get("total_locations", 0))
-                    st.metric("Avg Rating", f"{stats.get('avg_rating', 0):.2f}")
+                    st.markdown(f"""
+                        <div class="stat-box">
+                            <div class="stat-number">{stats.get('total_locations', 0)}</div>
+                            <div class="stat-label">Locations</div>
+                        </div>
+                    """, unsafe_allow_html=True)
+                    st.markdown(f"""
+                        <div class="stat-box">
+                            <div class="stat-number">{stats.get('avg_rating', 0):.1f}⭐</div>
+                            <div class="stat-label">Avg Rating</div>
+                        </div>
+                    """, unsafe_allow_html=True)
                 
                 st.divider()
                 st.subheader("ℹ️ About")
                 st.info("""
-            This recommendation engine uses:
-            - **Database**: SQLite with 9,216+ restaurants
-            - **AI**: LLM-powered explanations
-            - **Filtering**: Smart preference matching
-            """)
+                This recommendation engine uses:
+                - **Database**: SQLite with 9,216+ restaurants
+                - **AI**: LLM-powered explanations
+                - **Filtering**: Smart preference matching
+                """)
                 
                 # Health check
                 st.subheader("🔍 Status")
@@ -145,23 +383,42 @@ def main():
                 st.error(f"Error loading stats: {str(e)}")
     
     # Main content
-    st.subheader("🔍 Find Restaurants")
+    st.markdown('<div class="form-container">', unsafe_allow_html=True)
+    
+    st.markdown('<div class="section-title">🔍 Find Restaurants</div>', unsafe_allow_html=True)
     
     # Get available options
     cuisines, locations = get_available_options()
     
     # Create form
     with st.form("preference_form"):
-        col1, col2 = st.columns(2)
+        # Location section
+        st.markdown('<div class="section-title">📍 Location in Bengaluru</div>', unsafe_allow_html=True)
+        location = st.multiselect(
+            "Select Location",
+            options=sorted(locations),
+            default=None,
+            help="Select one or more locations",
+            label_visibility="collapsed"
+        )
+        
+        # Cuisine section
+        st.markdown('<div class="section-title">🍜 Cuisines</div>', unsafe_allow_html=True)
+        st.markdown("Type to search cuisines...")
+        cuisine = st.multiselect(
+            "Select Cuisine",
+            options=sorted(cuisines),
+            default=None,
+            help="Select one or more cuisines",
+            label_visibility="collapsed"
+        )
+        
+        # Filters section
+        st.markdown('<div class="section-title">⚙️ Filters</div>', unsafe_allow_html=True)
+        
+        col1, col2, col3 = st.columns(3)
         
         with col1:
-            cuisine = st.multiselect(
-                "Cuisine Type",
-                options=sorted(cuisines),
-                default=None,
-                help="Select one or more cuisines"
-            )
-            
             min_rating = st.slider(
                 "Minimum Rating",
                 min_value=0.0,
@@ -171,13 +428,6 @@ def main():
             )
         
         with col2:
-            location = st.multiselect(
-                "Location",
-                options=sorted(locations),
-                default=None,
-                help="Select one or more locations"
-            )
-            
             max_price = st.slider(
                 "Maximum Price",
                 min_value=0,
@@ -187,15 +437,18 @@ def main():
                 help="Price range: 1 (cheap) to 5 (expensive)"
             )
         
-        limit = st.number_input(
-            "Number of Recommendations",
-            min_value=1,
-            max_value=50,
-            value=5,
-            step=1
-        )
+        with col3:
+            limit = st.number_input(
+                "Number of Recommendations",
+                min_value=1,
+                max_value=50,
+                value=5,
+                step=1
+            )
         
         submitted = st.form_submit_button("🔍 Get Recommendations", use_container_width=True)
+    
+    st.markdown('</div>', unsafe_allow_html=True)
     
     # Process recommendations
     if submitted:
@@ -238,46 +491,43 @@ def main():
                 
                 # Display filter summary
                 filter_summary = processor.get_filter_summary(validated_prefs)
-                st.info(f"📋 Filters Applied: {filter_summary}")
+                st.markdown(f'<div class="filter-summary">📋 Filters Applied: {filter_summary}</div>', unsafe_allow_html=True)
                 
                 # Display results
-                st.subheader(f"✨ Found {len(recommendations)} Recommendations")
+                st.markdown(f'<div class="results-header">✨ Found {len(recommendations)} Recommendations</div>', unsafe_allow_html=True)
                 
                 for idx, restaurant in enumerate(recommendations, 1):
-                    with st.container():
-                        col1, col2 = st.columns([3, 1])
-                        
-                        with col1:
-                            st.markdown(f"### {idx}. {restaurant.get('name', 'N/A')}")
-                            
-                            # Restaurant details
-                            details = []
-                            if restaurant.get('cuisine'):
-                                details.append(f"🍜 {restaurant['cuisine']}")
-                            if restaurant.get('location'):
-                                details.append(f"📍 {restaurant['location']}")
-                            if details:
-                                st.markdown(" | ".join(details))
-                        
-                        with col2:
-                            rating = restaurant.get('rating', 0)
-                            price = restaurant.get('price', 0)
-                            st.markdown(f"⭐ {rating:.1f} | 💰 {'$' * price}")
-                        
-                        # Description
-                        if restaurant.get('description'):
-                            st.markdown(f"*{restaurant['description']}*")
-                        
-                        # AI Explanation
-                        if restaurant.get('explanation'):
-                            with st.expander("💡 AI Explanation"):
-                                st.markdown(restaurant['explanation'])
-                        
-                        st.divider()
+                    # Restaurant card
+                    rating = restaurant.get('rating', 0)
+                    price = restaurant.get('price', 0)
+                    
+                    card_html = f"""
+                    <div class="restaurant-card">
+                        <div class="restaurant-header">
+                            <div>
+                                <div class="restaurant-name">{idx}. {restaurant.get('name', 'N/A')}</div>
+                            </div>
+                            <div class="restaurant-rating">⭐ {rating:.1f}</div>
+                        </div>
+                        <div class="restaurant-details">
+                            <div class="restaurant-detail-item">🍜 {restaurant.get('cuisine', 'N/A')}</div>
+                            <div class="restaurant-detail-item">📍 {restaurant.get('location', 'N/A')}</div>
+                            <div class="restaurant-detail-item">💰 {'₹' * price}</div>
+                        </div>
+                    """
+                    
+                    if restaurant.get('description'):
+                        card_html += f'<div class="restaurant-description">{restaurant["description"]}</div>'
+                    
+                    if restaurant.get('explanation'):
+                        card_html += f'<div class="explanation-box"><strong>💡 Why this restaurant:</strong><br>{restaurant["explanation"]}</div>'
+                    
+                    card_html += '</div>'
+                    
+                    st.markdown(card_html, unsafe_allow_html=True)
         
         except Exception as e:
             st.error(f"Error getting recommendations: {str(e)}")
-            st.write("Debug info:", str(e))
 
 if __name__ == "__main__":
     main()
