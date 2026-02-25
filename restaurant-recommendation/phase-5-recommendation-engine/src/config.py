@@ -3,11 +3,16 @@
 import os
 from dataclasses import dataclass
 from pathlib import Path
-from dotenv import load_dotenv
 
-# Load environment variables from Phase 5's .env file
-phase5_env = Path(__file__).parent.parent / '.env'
-load_dotenv(phase5_env)
+# Load environment variables from Phase 5's .env file (if dotenv available)
+try:
+    from dotenv import load_dotenv
+    phase5_env = Path(__file__).parent.parent / '.env'
+    if phase5_env.exists():
+        load_dotenv(phase5_env)
+except ImportError:
+    # dotenv not available (e.g., on Streamlit Cloud), skip .env loading
+    pass
 
 
 @dataclass

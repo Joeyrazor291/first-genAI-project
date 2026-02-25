@@ -4,26 +4,31 @@ import os
 from pathlib import Path
 from dataclasses import dataclass
 from typing import Optional
-from dotenv import load_dotenv
 
-# Load environment variables from multiple locations
-# First try Phase 4 directory
-phase4_env = Path(__file__).parent.parent / ".env"
-if phase4_env.exists():
-    load_dotenv(phase4_env)
+# Load environment variables from multiple locations (if dotenv available)
+try:
+    from dotenv import load_dotenv
+    
+    # First try Phase 4 directory
+    phase4_env = Path(__file__).parent.parent / ".env"
+    if phase4_env.exists():
+        load_dotenv(phase4_env)
 
-# Then try Phase 2 directory (for API server)
-phase2_env = Path(__file__).parent.parent.parent / "phase-2-recommendation-api" / ".env"
-if phase2_env.exists():
-    load_dotenv(phase2_env)
+    # Then try Phase 2 directory (for API server)
+    phase2_env = Path(__file__).parent.parent.parent / "phase-2-recommendation-api" / ".env"
+    if phase2_env.exists():
+        load_dotenv(phase2_env)
 
-# Finally try Phase 5 directory
-phase5_env = Path(__file__).parent.parent.parent / "phase-5-recommendation-engine" / ".env"
-if phase5_env.exists():
-    load_dotenv(phase5_env)
+    # Finally try Phase 5 directory
+    phase5_env = Path(__file__).parent.parent.parent / "phase-5-recommendation-engine" / ".env"
+    if phase5_env.exists():
+        load_dotenv(phase5_env)
 
-# Also load from current working directory
-load_dotenv()
+    # Also load from current working directory
+    load_dotenv()
+except ImportError:
+    # dotenv not available (e.g., on Streamlit Cloud), skip .env loading
+    pass
 
 
 @dataclass

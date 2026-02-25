@@ -2,10 +2,14 @@
 
 import os
 from pathlib import Path
-from dotenv import load_dotenv
 
-# Load environment variables from .env file
-load_dotenv()
+# Load environment variables from .env file (if dotenv available)
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    # dotenv not available (e.g., on Streamlit Cloud), skip .env loading
+    pass
 
 # Base directory for Phase 1
 BASE_DIR = Path(__file__).parent.parent

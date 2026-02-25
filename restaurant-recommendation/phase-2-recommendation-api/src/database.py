@@ -4,7 +4,14 @@ import sys
 from pathlib import Path
 import logging
 import os
-from dotenv import load_dotenv
+
+# Load environment variables (if dotenv available)
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    # dotenv not available (e.g., on Streamlit Cloud), skip .env loading
+    pass
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -21,9 +28,6 @@ if str(phase1_path) not in sys.path:
 # Import RestaurantStore from Phase 1
 # This will work because we added phase1_path to sys.path
 from src.data.store import RestaurantStore
-
-# Load Phase 2 environment config
-load_dotenv()
 BASE_DIR = Path(__file__).parent.parent
 PHASE1_DB_PATH = os.getenv('PHASE1_DB_PATH', '../phase-1-data-pipeline/data/restaurant.db')
 PHASE1_DB_FULL_PATH = BASE_DIR / PHASE1_DB_PATH
