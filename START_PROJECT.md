@@ -49,15 +49,50 @@ This is a full-stack AI-powered restaurant recommendation system with 6 integrat
 - **Node.js 16+** (for frontend)
 - **OpenRouter API Key** (for LLM recommendations)
 - **Internet connection** (for LLM API calls)
+- **Windows PowerShell** (recommended for running commands)
+
+## Important: Windows-Specific Setup
+
+This project is configured for **Windows with PowerShell**. Key differences from Linux/Mac:
+
+1. **Virtual Environment Location**: `.venv/` is at the **root** of the project, not in each phase directory
+2. **Python Activation**: Use `.venv\Scripts\python` instead of `python` command
+3. **Path Separators**: Use backslashes `\` instead of forward slashes `/`
+4. **Command Syntax**: PowerShell syntax differs from bash
+
+### Virtual Environment Reference
+
+From any directory, use the root virtual environment:
+
+```powershell
+# From root directory
+.venv\Scripts\python -m src.main
+
+# From a subdirectory (e.g., phase-2-recommendation-api)
+..\..\\.venv\Scripts\python -m src.main
+
+# From a nested subdirectory (e.g., End to End Testing)
+..\..\\.venv\Scripts\python -m pytest test_e2e_complete_flow.py -v
+```
 
 ## Quick Start (5 minutes)
 
-### Terminal 1: Start Backend API
+### Prerequisites Check
 
-```bash
+Before starting, verify:
+1. ✅ Virtual environment exists at `.venv/` (root directory)
+2. ✅ Database exists at `restaurant-recommendation/phase-1-data-pipeline/data/restaurant.db`
+3. ✅ LLM API keys configured in `restaurant-recommendation/phase-4-llm-integration/.env`
+4. ✅ Node.js installed (for frontend)
+
+### Terminal 1: Start Backend API (Windows PowerShell)
+
+```powershell
+# Navigate to API directory
 cd restaurant-recommendation/phase-2-recommendation-api
-pip install -r requirements.txt
-python -m src.main
+
+# Start API using virtual environment from root
+.venv\Scripts\python -m src.main
 ```
 
 Expected output:
@@ -66,11 +101,18 @@ INFO:     Uvicorn running on http://0.0.0.0:8000
 INFO:     Application startup complete.
 ```
 
-### Terminal 2: Start Frontend
+**Important**: The virtual environment is located at the **root** of the project (`.venv/`), not in the API directory.
 
-```bash
+### Terminal 2: Start Frontend (Windows PowerShell)
+
+```powershell
+# Navigate to frontend directory
 cd restaurant-recommendation/phase-6-frontend
+
+# Install dependencies (first time only)
 npm install
+
+# Start development server
 npm run dev
 ```
 
@@ -86,6 +128,18 @@ VITE v5.4.21  ready in 301 ms
 - **Frontend UI**: http://localhost:5173 ✅ **LIVE NOW**
 - **API Docs**: http://localhost:8000/api/v1/docs
 - **API ReDoc**: http://localhost:8000/api/v1/redoc
+
+### Verify Both Services Are Running
+
+Open a third terminal and test:
+
+```powershell
+# Test API health
+Invoke-WebRequest -Uri http://localhost:8000/health -UseBasicParsing
+
+# Test frontend is accessible
+Invoke-WebRequest -Uri http://localhost:5173 -UseBasicParsing
+```
 
 ---
 
@@ -137,7 +191,22 @@ POST /api/v1/recommendations
 
 ## Detailed Setup Instructions
 
-### Step 1: Verify Phase 1 Database
+### Step 1: Verify Virtual Environment
+
+The project uses a shared virtual environment at the root level:
+
+```powershell
+# Check if .venv exists
+Get-ChildItem -Path .venv -Directory
+
+# If it doesn't exist, create it
+python -m venv .venv
+
+# Activate it (optional - scripts can be called directly)
+.venv\Scripts\Activate.ps1
+```
+
+### Step 2: Verify Phase 1 Database
 
 The database should already exist at:
 ```
@@ -146,35 +215,49 @@ restaurant-recommendation/phase-1-data-pipeline/data/restaurant.db
 
 If it doesn't exist, regenerate it:
 
-```bash
+```powershell
 cd restaurant-recommendation/phase-1-data-pipeline
-pip install -r requirements.txt
-python -m src.main
+
+# Install dependencies using root virtual environment
+..\..\.venv\Scripts\python -m pip install -r requirements.txt
+
+# Run the data pipeline
+..\..\.venv\Scripts\python -m src.main
 ```
 
-### Step 2: Configure Phase 2 API
+### Step 3: Configure Phase 2 API
 
 Navigate to Phase 2:
-```bash
+```powershell
 cd restaurant-recommendation/phase-2-recommendation-api
 ```
 
-Install dependencies:
-```bash
-pip install -r requirements.txt
-```
-
-Verify `.env` file exists (should have default values):
+Verify `.env` file exists with these values:
 ```env
 API_HOST=0.0.0.0
 API_PORT=8000
 PHASE1_DB_PATH=../phase-1-data-pipeline/data/restaurant.db
 LOG_LEVEL=INFO
+LLM_PROVIDER=openrouter
+OPENROUTER_API_KEY=your_api_key_here
+OPENROUTER_MODEL=meta-llama/llama-3.3-70b-instruct
+LLM_TEMPERATURE=0.7
+LLM_MAX_TOKENS=1024
+MAX_RETRIES=3
+RETRY_DELAY=1.0
+```
+
+Install dependencies (first time only):
+```powershell
+# From phase-2-recommendation-api directory
+..\..\\.venv\Scripts\python -m pip install -r requirements.txt
 ```
 
 Start the API:
-```bash
-python -m src.main
+```powershell
+# From phase-2-recommendation-api directory
+# Use the virtual environment from root
+..\..\\.venv\Scripts\python -m src.main
 ```
 
 The API will:
@@ -184,7 +267,7 @@ The API will:
 - Initialize Phase 4 LLM service
 - Start listening on http://localhost:8000
 
-### Step 3: Configure Phase 4 LLM Integration
+### Step 4: Configure Phase 4 LLM Integration
 
 Verify `.env` file at `restaurant-recommendation/phase-4-llm-integration/.env`:
 
@@ -215,20 +298,20 @@ RETRY_DELAY=1.0
 3. Generate an API key
 4. Add it to the `.env` file
 
-### Step 4: Start Frontend
+### Step 5: Start Frontend
 
 Navigate to Phase 6:
-```bash
+```powershell
 cd restaurant-recommendation/phase-6-frontend
 ```
 
-Install dependencies:
-```bash
+Install dependencies (first time only):
+```powershell
 npm install
 ```
 
 Start development server:
-```bash
+```powershell
 npm run dev
 ```
 
@@ -311,11 +394,25 @@ GET http://localhost:8000/api/v1/stats
 
 1. **Start all services** (follow Quick Start above)
 
-2. **Test API directly**:
-```bash
-curl -X POST http://localhost:8000/api/v1/recommendations \
-  -H "Content-Type: application/json" \
-  -d '{"cuisine": "italian", "min_rating": 4.0, "limit": 5}'
+2. **Test API directly** (Windows PowerShell):
+```powershell
+# Get recommendations
+$body = @{
+    cuisine = "italian"
+    min_rating = 4.0
+    limit = 5
+} | ConvertTo-Json
+
+Invoke-WebRequest -Uri "http://localhost:8000/api/v1/recommendations" `
+  -Method POST `
+  -Headers @{"Content-Type"="application/json"} `
+  -Body $body
+
+# View statistics
+Invoke-WebRequest -Uri "http://localhost:8000/api/v1/stats"
+
+# Check health
+Invoke-WebRequest -Uri "http://localhost:8000/health"
 ```
 
 3. **Test Frontend**:
@@ -327,36 +424,55 @@ curl -X POST http://localhost:8000/api/v1/recommendations \
 ### Automated Testing
 
 Run end-to-end tests:
-```bash
-cd End\ to\ End\ Testing
-pip install -r requirements.txt
-python -m pytest test_e2e_complete_flow.py -v
+```powershell
+cd "End to End Testing"
+
+# Install test dependencies
+..\..\\.venv\Scripts\python -m pip install -r requirements.txt
+
+# Run complete flow test
+..\..\\.venv\Scripts\python -m pytest test_e2e_complete_flow.py -v
 ```
 
 Test specific phases:
-```bash
+```powershell
 # Test API endpoints
-pytest test_e2e_api_endpoints.py -v
+..\..\\.venv\Scripts\python -m pytest test_e2e_api_endpoints.py -v
 
 # Test LLM integration
-pytest test_e2e_llm_integration.py -v
+..\..\\.venv\Scripts\python -m pytest test_e2e_llm_integration.py -v
 
 # Test database integration
-pytest test_e2e_database_integration.py -v
+..\..\\.venv\Scripts\python -m pytest test_e2e_database_integration.py -v
 
 # Test complete flow
-pytest test_e2e_complete_flow.py -v
+..\..\\.venv\Scripts\python -m pytest test_e2e_complete_flow.py -v
 ```
 
 ---
 
 ## Troubleshooting
 
+### Issue: "Python not found" or "python: The term 'python' is not recognized"
+**Solution**: Use the virtual environment from the root directory:
+```powershell
+# Instead of: python -m src.main
+# Use: .venv\Scripts\python -m src.main
+
+# Or from a subdirectory:
+..\..\\.venv\Scripts\python -m src.main
+```
+
 ### Issue: "Database not found"
-**Solution**: Run Phase 1 pipeline:
-```bash
+**Solution**: Verify database exists and regenerate if needed:
+```powershell
 cd restaurant-recommendation/phase-1-data-pipeline
-python -m src.main
+
+# Check if database exists
+Get-ChildItem -Path data/restaurant.db
+
+# If not, regenerate it
+..\..\\.venv\Scripts\python -m src.main
 ```
 
 ### Issue: "Port 8000 already in use"
@@ -365,23 +481,41 @@ python -m src.main
 API_PORT=8001
 ```
 
+Then access API at: http://localhost:8001
+
 ### Issue: "LLM API key invalid"
 **Solution**: 
-1. Verify API key in `.env` file
+1. Verify API key in `.env` file is correct
 2. Check OpenRouter account has credits
 3. Verify internet connection
+4. Test API key directly at https://openrouter.ai
 
 ### Issue: "Frontend can't connect to API"
 **Solution**:
-1. Verify API is running on http://localhost:8000
-2. Check browser console for CORS errors
-3. Ensure both services are on localhost
+1. Verify API is running: `Invoke-WebRequest -Uri http://localhost:8000/health`
+2. Check browser console (F12) for CORS errors
+3. Ensure both services are on localhost (not 127.0.0.1)
+4. Check firewall settings
 
 ### Issue: "No recommendations found"
 **Solution**:
-1. Try with fewer filters
-2. Verify database has data: `GET /api/v1/stats`
-3. Check API logs for errors
+1. Try with fewer filters (remove min_rating, max_price)
+2. Verify database has data: `Invoke-WebRequest -Uri http://localhost:8000/api/v1/stats`
+3. Check API logs for errors (set `LOG_LEVEL=DEBUG` in `.env`)
+
+### Issue: "npm: command not found"
+**Solution**: Install Node.js from https://nodejs.org/
+- Download LTS version
+- Run installer
+- Restart PowerShell
+- Verify: `node --version` and `npm --version`
+
+### Issue: "Module not found" errors when running API
+**Solution**: Install dependencies using the virtual environment:
+```powershell
+cd restaurant-recommendation/phase-2-recommendation-api
+..\..\\.venv\Scripts\python -m pip install -r requirements.txt
+```
 
 ---
 
@@ -518,18 +652,18 @@ Check browser console (F12) for:
 
 ### Test Individual Phases
 
-```bash
+```powershell
 # Test Phase 1 database
-cd phase-1-data-pipeline
-pytest tests/ -v
+cd restaurant-recommendation/phase-1-data-pipeline
+..\..\\.venv\Scripts\python -m pytest tests/ -v
 
 # Test Phase 2 API
-cd phase-2-recommendation-api
-pytest tests/ -v
+cd restaurant-recommendation/phase-2-recommendation-api
+..\..\\.venv\Scripts\python -m pytest tests/ -v
 
 # Test Phase 5 engine
-cd phase-5-recommendation-engine
-pytest tests/ -v
+cd restaurant-recommendation/phase-5-recommendation-engine
+..\..\\.venv\Scripts\python -m pytest tests/ -v
 ```
 
 ---

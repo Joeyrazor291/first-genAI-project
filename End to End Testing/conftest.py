@@ -47,7 +47,7 @@ def api_client() -> Generator[httpx.Client, None, None]:
 
 
 @pytest.fixture(scope="session")
-def async_api_client() -> Generator[httpx.AsyncClient, None, None]:
+async def async_api_client() -> Generator[httpx.AsyncClient, None, None]:
     """
     Async HTTP client for concurrent API requests.
     
