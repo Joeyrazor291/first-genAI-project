@@ -2,7 +2,6 @@ import streamlit as st
 import sys
 import os
 from pathlib import Path
-from dotenv import load_dotenv
 
 # Add phase directories to path
 phase_dirs = [
@@ -15,11 +14,33 @@ phase_dirs = [
 for phase_dir in phase_dirs:
     sys.path.insert(0, str(Path(phase_dir) / "src"))
 
-# Load environment variables
-for phase_dir in phase_dirs:
-    env_path = Path(phase_dir) / ".env"
-    if env_path.exists():
-        load_dotenv(env_path)
+# Load environment variables from .env files (only if dotenv is available)
+try:
+    from dotenv import load_dotenv
+    for phase_dir in phase_dirs:
+        env_path = Path(phase_dir) / ".env"
+        if env_path.exists():
+            load_dotenv(env_path)
+except ImportError:
+    # dotenv not available (e.g., on Streamlit Cloud), skip .env loading
+    pass
+
+# Load Streamlit secrets (for local development and Streamlit Cloud)
+# Secrets are stored in .streamlit/secrets.toml (local) or app settings (Streamlit Cloud)
+try:
+    llm_provider = st.secrets.get("llm_provider", "groq")
+    if llm_provider == "groq":
+        groq_key = st.secrets.get("groq_api_key", "")
+        if groq_key:
+            os.environ["GROQ_API_KEY"] = groq_key
+    elif llm_provider == "openrouter":
+        openrouter_key = st.secrets.get("openrouter_api_key", "")
+        if openrouter_key:
+            os.environ["OPENROUTER_API_KEY"] = openrouter_key
+    os.environ["LLM_PROVIDER"] = llm_provider
+except Exception as e:
+    # Secrets not available, will use environment variables
+    pass
 
 from recommendation_engine import RecommendationEngine
 from preference_processor import validate_preferences, get_filter_summary
