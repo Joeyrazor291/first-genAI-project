@@ -1,5 +1,5 @@
 # AI Restaurant Recommendation Service
-
+- An recommendation service created by amit subudhi as a PM for learning and using it in his own accords
 A full-stack AI-powered restaurant recommendation system with 6 integrated phases.
 
 ## 🚀 Quick Start
